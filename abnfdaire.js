@@ -1,9 +1,9 @@
-import { parse } from "./lib/abnfp.js";
-import serialize from "./lib/serialize.mjs";
-import { wrapper } from "./lib/serialize.mjs";
-import html from './node_modules/escape-html-template-tag/dist/index.module.mjs';
+import { parse } from "https://unpkg.com/abnf@3.0.1/lib/abnfp.js";
+import serialize, { wrapper} from "https://dontcallmedom.github.io/rfcref/abnf/tools/lib/serialize.mjs";
 
-import rr, {defaultCSS} from "./railroad-diagrams/railroad.js";
+import html from "https://unpkg.com/escape-html-template-tag@2.2.3/dist/index.module.mjs";
+
+import rr, {defaultCSS} from "http://tabatkins.github.io/railroad-diagrams/railroad.js";
 
 
 const enc = new TextEncoder();
