@@ -3,7 +3,7 @@ import serialize, { wrapper} from "https://dontcallmedom.github.io/rfcref/abnf/t
 
 import html from "https://unpkg.com/escape-html-template-tag@2.2.3/dist/index.module.mjs";
 
-import rr, {defaultCSS} from "http://tabatkins.github.io/railroad-diagrams/railroad.js";
+import rr, {defaultCSS} from "https://tabatkins.github.io/railroad-diagrams/railroad.js";
 
 
 const enc = new TextEncoder();
