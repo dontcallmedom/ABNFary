@@ -20,7 +20,7 @@ const classSpanWrap = dep => new Proxy(wrapper(), {
       return function(i) {
 	let comment = "";
 	if (Object.keys(dep.imports || {}).includes(i)) {
-	  comment = html`<span class='comment'>; Imported from <a href="?${dep.imports[i].slice(3)}">${dep.imports[i]}</a></span>\n`;
+	  comment = html`<span class='comment'>; Imported from <a href="?num=${dep.imports[i].slice(3)}">${dep.imports[i]}</a></span>\n`;
 	}
 	return comment + html`<dfn id="${i}">` + i + html`</dfn>`;
       };
@@ -31,9 +31,11 @@ const classSpanWrap = dep => new Proxy(wrapper(), {
   }
 });
 
-
-const num =  window.location.search.slice(1);
+const urlParams = new URLSearchParams(location.search);
+console.log(urlParams);
+const num =  urlParams.get("num");
 if (num && num.match(/^[0-9]+/)) {
+  document.getElementById("num").value = num;
   await showRfcAbnf(num);
 }
 
@@ -91,7 +93,12 @@ async function showRfcAbnf(num) {
   const rrStyle = document.createElement("style");
   rrStyle.textContent = defaultCSS;
   document.querySelector("head").append(rrStyle);
-  const abnf = await (await fetch(`https://dontcallmedom.github.io/rfcref/abnf/consolidated/rfc${num}.abnf`)).text();
+  const abnfRes = await fetch(`https://dontcallmedom.github.io/rfcref/abnf/consolidated/rfc${num}.abnf`);
+  if (abnfRes.status === 404) {
+    output.textContent = `No consolidated ABNF found for RFC ${num}.`;
+    return;
+  }
+  const abnf = await abnfRes.text();
   let dependencies = {};
   try {
     dependencies = await (await fetch(`https://dontcallmedom.github.io/rfcref/abnf/dependencies/rfc${num}.json`)).json();
