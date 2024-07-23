@@ -12,7 +12,8 @@ window.Buffer = {
   from: str => enc.encode(" ")
 };
 
-const output =   document.getElementById("output");
+const output = document.getElementById("output");
+const source = document.getElementById("source");
 
 const classSpanWrap = dep => new Proxy(wrapper(), {
   get(target, name) {
@@ -93,11 +94,17 @@ async function showRfcAbnf(num) {
   const rrStyle = document.createElement("style");
   rrStyle.textContent = defaultCSS;
   document.querySelector("head").append(rrStyle);
-  const abnfRes = await fetch(`https://dontcallmedom.github.io/rfcref/abnf/consolidated/rfc${num}.abnf`);
+  const abnfUrl = `https://dontcallmedom.github.io/rfcref/abnf/consolidated/rfc${num}.abnf`;
+  const abnfRes = await fetch(abnfUrl);
   if (abnfRes.status === 404) {
     output.textContent = `No consolidated ABNF found for RFC ${num}.`;
+    source.innerHTML = "";
     return;
   }
+  const sourceLink = document.createElement("a");
+  sourceLink.textContent = "source ABNF in rfcref";
+  sourceLink.href = abnfUrl;
+  source.append(sourceLink);
   const abnf = await abnfRes.text();
   let dependencies = {};
   try {
