@@ -44,9 +44,9 @@ function abnfToRailroad(rule, topRules = []) {
   switch(rule.type) {
   case "rule":
     if (topRules.includes(rule.name.toUpperCase())) {
-      return rr.ComplexDiagram(abnfToRailroad(rule.def));
+      return rr.ComplexDiagram(rr.Comment(rule.name), abnfToRailroad(rule.def));
     } else {
-      return rr.Diagram(abnfToRailroad(rule.def));
+      return rr.Diagram(rr.Comment(rule.name), abnfToRailroad(rule.def));
     }
   case "caseSensitveString":
     if (rule.base) {
