@@ -24,15 +24,31 @@ for (const rfc of abnfIndex) {
   numSelector.append(opt);
 }
 
-const classSpanWrap = dep => new Proxy(wrapper(), {
+function nameIsFrom(name, rfcData, dep) {
+  const imported = Object.keys(rfcData.dependencies).find(k => rfcData.dependencies[k].names.includes(name.toUpperCase()));
+  const extended = Object.keys(dep.extends || {}).map(n => n.toUpperCase()).includes(name.toUpperCase());
+  if (extended) return {extended};
+  if (imported) return {imported};
+  return {};
+}
+
+const classSpanWrap = (rfc, dep) => new Proxy(wrapper(), {
   get(target, name) {
     if (name === "rulenamedecl") {
       return function(i) {
 	let comment = "";
-	if (Object.keys(dep.imports || {}).includes(i)) {
-	  comment = html`<span class='comment'>; Imported from <a href="?num=${dep.imports[i].slice(3)}">${dep.imports[i]}</a></span>\n`;
+	let linkStart = "", linkEnd = "";
+	const {extended, imported} = nameIsFrom(i, rfc, dep);
+	if (extended) {
+	  comment = html`<span class='comment'>; Extends definition in <a href="?num=${extended.slice(3)}">${extended}</a></span>\n`;
+	  linkStart = html`<a href="?num=${extended.slice(3)}#${i}">`;
+	  linkEnd = html`</a>`;
+	} else if (imported) {
+	  comment = html`<span class='comment'>; Imported from <a href="?num=${imported.slice(3)}">${imported}</a></span>\n`;
+	  linkStart = html`<a href="?num=${imported.slice(3)}#${i}">`;
+	  linkEnd = html`</a>`;
 	}
-	return comment + html`<dfn id="${i}">` + i + html`</dfn>`;
+	return comment + html`<dfn id="${i}">` + linkStart + i + linkEnd + html`</dfn>`;
       };
     } else if (name === "rulename") {
       return i => html`<a href="#${i}">` + i + html`</a>`;
@@ -105,10 +121,19 @@ async function showRfcAbnf(num) {
   const abnfUrl = `https://dontcallmedom.github.io/rfcref/abnf/consolidated/rfc${num}.abnf`;
   const abnfRes = await fetch(abnfUrl);
   if (abnfRes.status === 404) {
+    document.getElementById("title").remove();
     output.textContent = `No consolidated ABNF found for RFC ${num}.`;
     source.innerHTML = "";
     return;
   }
+  const rfc = abnfIndex.find(e => e.name === `RFC${num}`);
+  const title = document.getElementById("title") ?? document.createElement("h2");
+  if (!title.id) {
+    title.id = "title";
+    
+    source.insertAdjacentElement('beforebegin', title);
+  }
+  title.innerHTML = html`<a href="https://datatracker.ietf.org/doc/html/rfc${num}">${rfc.title}</a>`;
   const sourceLink = document.createElement("a");
   sourceLink.textContent = "source ABNF in rfcref";
   sourceLink.href = abnfUrl;
@@ -122,14 +147,17 @@ async function showRfcAbnf(num) {
   }
   const rules = parse(abnf);
   const unreferencedDefs = Object.keys(rules.defs).filter(d => !rules.refs.find(r => r.name.toUpperCase() === d));
-  console.log(unreferencedDefs);
   let h = "";
-  const w = classSpanWrap(dependencies);
+  const w = classSpanWrap(rfc, dependencies);
   for (const def of Object.values(rules.defs)) {
     h += serialize(def, w) + "\n\n";
-
-    h += abnfToRailroad(def, unreferencedDefs).toString();
+    const {extended, imported} = nameIsFrom(def.name, rfc, dependencies);
+    if (!extended && !imported) {
+      h += abnfToRailroad(def, unreferencedDefs).toString();
+    }
   }
-  console.log(h);
   output.innerHTML = h;
+  if (location.hash) {
+    document.getElementById(location.hash.slice(1))?.scrollIntoView(true);
+  }
 }
