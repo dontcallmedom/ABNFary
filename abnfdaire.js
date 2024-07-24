@@ -5,6 +5,7 @@ import html from "https://unpkg.com/escape-html-template-tag@2.2.3/dist/index.mo
 
 import rr, {defaultCSS} from "https://tabatkins.github.io/railroad-diagrams/railroad.js";
 
+const  abnfIndex = await (await fetch("https://dontcallmedom.github.io/rfcref/abnf/index.json")).json(); ;
 
 const enc = new TextEncoder();
 
@@ -14,6 +15,14 @@ window.Buffer = {
 
 const output = document.getElementById("output");
 const source = document.getElementById("source");
+
+const numSelector = document.getElementById("num");
+for (const rfc of abnfIndex) {
+  const opt = document.createElement("option");
+  opt.value = rfc.name.slice(3);
+  opt.textContent = rfc.name;
+  numSelector.append(opt);
+}
 
 const classSpanWrap = dep => new Proxy(wrapper(), {
   get(target, name) {
@@ -33,7 +42,6 @@ const classSpanWrap = dep => new Proxy(wrapper(), {
 });
 
 const urlParams = new URLSearchParams(location.search);
-console.log(urlParams);
 const num =  urlParams.get("num");
 if (num && num.match(/^[0-9]+/)) {
   document.getElementById("num").value = num;
